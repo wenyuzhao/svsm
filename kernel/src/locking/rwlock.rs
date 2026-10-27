@@ -555,7 +555,7 @@ impl<T: Send + Sync, I: IrqLocking> RawRWLock<T, I> {
 
         // Attempt to update the reader count by 1. Bail if a writer is present.
         self.rwlock
-            .fetch_update(Ordering::Acquire, Ordering::Relaxed, |val| {
+            .try_update(Ordering::Acquire, Ordering::Relaxed, |val| {
                 let (readers, writers) = split_val(val);
                 (writers == 0).then(|| compose_val(readers + 1, 0))
             })

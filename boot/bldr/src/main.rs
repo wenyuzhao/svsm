@@ -64,7 +64,9 @@ global_asm!(
         movl %cr0, %eax
         orl ${CR0_PE}, %eax // enable protected mode
         movl %eax, %cr0
-        lgdtl %cs:0x10000 + gdt_desc - base_entry
+        /* CS is based at 0x10000 (the SIPI vector), so the GDT descriptor
+         * is addressed by its offset relative to base_entry. */
+        lgdtl %cs:(gdt_desc - base_entry)
         ljmpl $8, $startup_ap
 
         .code32

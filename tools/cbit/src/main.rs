@@ -37,8 +37,8 @@ struct EncryptMemCapEbx {
 }
 
 fn cpuid(eax: u32) -> CpuidResult {
-    // SAFETY: CPUID is always safe
-    unsafe { __cpuid(eax) }
+    // CPUID is always safe, and `__cpuid` is a safe function on x86_64.
+    __cpuid(eax)
 }
 
 fn main() -> ExitCode {

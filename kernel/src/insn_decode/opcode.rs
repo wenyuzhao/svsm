@@ -246,15 +246,14 @@ impl OpCodeDesc {
         let mut opdesc = Self::one_byte(insn);
 
         loop {
-            if let Some(desc) = opdesc {
+            {
+                let desc = opdesc?;
                 opdesc = match desc.class {
                     OpCodeClass::TwoByte => Self::two_byte(insn),
                     OpCodeClass::Group7 => Self::group7(insn),
                     OpCodeClass::Group7Rm7 => Self::group7_rm7(insn),
                     _ => return opdesc,
                 }
-            } else {
-                return None;
             }
         }
     }

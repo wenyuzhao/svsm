@@ -1334,10 +1334,7 @@ impl DecodedInsnCtx {
             // Output byte/word/doubleword from memory location specified in
             // DS:(E)SI (The DS segment may be overridden with a segment
             // override prefix.) or RSI to I/O port specified in DX.
-            (
-                self.override_seg.map_or(SegRegister::DS, |s| s),
-                Register::Rsi,
-            )
+            (self.override_seg.unwrap_or(SegRegister::DS), Register::Rsi)
         };
 
         // Decode the linear addresses and map as a memory object

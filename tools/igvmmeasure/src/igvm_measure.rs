@@ -253,10 +253,8 @@ impl IgvmMeasure {
                     compatibility_mask,
                     ld,
                     ..
-                } => {
-                    if (self.compatibility_mask & compatibility_mask) != 0 {
-                        self.id_block_ld = Some(*ld);
-                    }
+                } if (self.compatibility_mask & compatibility_mask) != 0 => {
+                    self.id_block_ld = Some(*ld);
                 }
                 _ => (),
             }

@@ -179,7 +179,7 @@ extern "C" fn ex_handler_terminate(ctx: &mut X86ExceptionContext, vector: usize)
     if user_mode(ctx) {
         // Terminate the current task if it is a user-mode task.
         log::error!(
-            "Terminating task due to unhandled user mode exception {:#02x} at {:#018x}",
+            "Terminating task due to unhandled user mode exception {:#04x} at {:#018x}",
             vector,
             { ctx.frame.rip }
         );

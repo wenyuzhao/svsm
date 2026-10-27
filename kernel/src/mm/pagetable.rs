@@ -1254,12 +1254,11 @@ impl PageTable {
 
                     entry.set(paddr, flags);
                 }
-                1 | 2 => {
+                1 | 2
                     // Ensure we never fell on a huge page while iterating over the region pages.
-                    if mapping.entry.huge() {
+                    if mapping.entry.huge() => {
                         return Err(SvsmError::Mem);
                     }
-                }
                 _ => {}
             }
         }

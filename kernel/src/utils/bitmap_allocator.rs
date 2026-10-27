@@ -165,8 +165,8 @@ impl<T: BitmapAllocator + Debug> BitmapAllocator for BitmapAllocatorTree<T> {
     fn next_free(&self, start: usize) -> Option<usize> {
         assert!(start < Self::CAPACITY);
         let mut offset = start % T::CAPACITY;
-        for index in (start / T::CAPACITY)..16 {
-            if let Some(next_offset) = self.child[index].next_free(offset) {
+        for (index, child) in self.child.iter().enumerate().skip(start / T::CAPACITY) {
+            if let Some(next_offset) = child.next_free(offset) {
                 return Some(next_offset + (index * T::CAPACITY));
             }
             // Only the first loop iteration uses a non-zero offset
@@ -375,8 +375,8 @@ mod tests {
     fn tree_set_all() {
         let mut b = BitmapAllocatorTree::<BitmapAllocator64>::new_full();
         b.set(0, 64 * 16, false);
-        for i in 0..16 {
-            assert_eq!(b.child[i].bits, 0);
+        for child in b.child.iter() {
+            assert_eq!(child.bits, 0);
         }
         assert_eq!(b.bits, 0);
         assert_eq!(b.used(), 0);
@@ -386,8 +386,8 @@ mod tests {
     fn tree_clear_all() {
         let mut b = BitmapAllocatorTree::<BitmapAllocator64>::new_full();
         b.set(0, 64 * 16, true);
-        for i in 0..16 {
-            assert_eq!(b.child[i].bits, u64::MAX);
+        for child in b.child.iter() {
+            assert_eq!(child.bits, u64::MAX);
         }
         assert_eq!(b.bits, u16::MAX);
         assert_eq!(b.used(), 1024);
@@ -400,11 +400,11 @@ mod tests {
         // First child
         b.set(0, BitmapAllocatorTree::<BitmapAllocator64>::CAPACITY, false);
         b.set(11, 17, true);
-        for i in 0..16 {
+        for (i, child) in b.child.iter().enumerate() {
             if i == 0 {
-                assert_eq!(b.child[i].bits, 0x000000000ffff800);
+                assert_eq!(child.bits, 0x000000000ffff800);
             } else {
-                assert_eq!(b.child[i].bits, 0);
+                assert_eq!(child.bits, 0);
             }
         }
         assert_eq!(b.bits, 0x0001);
@@ -413,11 +413,11 @@ mod tests {
         // Last child
         b.set(0, BitmapAllocatorTree::<BitmapAllocator64>::CAPACITY, false);
         b.set((15 * 64) + 11, 17, true);
-        for i in 0..16 {
+        for (i, child) in b.child.iter().enumerate() {
             if i == 15 {
-                assert_eq!(b.child[i].bits, 0x000000000ffff800);
+                assert_eq!(child.bits, 0x000000000ffff800);
             } else {
-                assert_eq!(b.child[i].bits, 0);
+                assert_eq!(child.bits, 0);
             }
         }
         assert_eq!(b.bits, 0x8000);
@@ -426,13 +426,13 @@ mod tests {
         // Traverse child boundary
         b.set(0, BitmapAllocatorTree::<BitmapAllocator64>::CAPACITY, false);
         b.set(50, 28, true);
-        for i in 0..16 {
+        for (i, child) in b.child.iter().enumerate() {
             if i == 0 {
-                assert_eq!(b.child[i].bits, 0xfffc000000000000);
+                assert_eq!(child.bits, 0xfffc000000000000);
             } else if i == 1 {
-                assert_eq!(b.child[i].bits, 0x0000000000003fff);
+                assert_eq!(child.bits, 0x0000000000003fff);
             } else {
-                assert_eq!(b.child[i].bits, 0);
+                assert_eq!(child.bits, 0);
             }
         }
         assert_eq!(b.bits, 0x0003);

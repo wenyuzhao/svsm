@@ -22,12 +22,10 @@ explains how to run these tests inside a hypervisor.
 ### Requirements
 
 As of writing, the IGVM file used to run in-SVSM tests can only be built using
-the Rust nightly toolchain, e.g.
-
-```shell
-rustup toolchain install nightly
-rustup +nightly target add x86_64-unknown-none
-```
+the Rust nightly toolchain. The repository currently pins a nightly toolchain
+in `rust-toolchain.toml` (required by tpm-rs, which implements the vTPM), so
+the in-SVSM tests are built with that toolchain and no additional setup is
+needed.
 
 Just like booting a regular build of the SVSM, this requires a QEMU version
 built as specified in the [INSTALL.md](../installation/INSTALL.md) document.

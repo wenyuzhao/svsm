@@ -64,9 +64,9 @@ fn construct_init_page_tables(
     // for the 4 KB PTEs, and the last page is the paging root.
     page_tables.pages[3].ptes[0] = pte_mask | (init_page_table_gpa + 2 * PAGE_SIZE_4K);
 
-    for i in 0..4 {
+    for (i, pte) in page_tables.pages[2].ptes[..4].iter_mut().enumerate() {
         // This PTE is present, writable, accessed, dirty, and large page.
-        page_tables.pages[2].ptes[i] = 0xE3 | ((i as u64) << 30);
+        *pte = 0xE3 | ((i as u64) << 30);
     }
 
     page_tables.pages[2].ptes[4] = pte_mask | (init_page_table_gpa + PAGE_SIZE_4K);

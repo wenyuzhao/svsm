@@ -50,7 +50,7 @@ impl VsockDriver {
             // checks if a port is free holding the device lock.
             let candidate_port =
                 self.first_free_port
-                    .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |port| {
+                    .try_update(Ordering::Relaxed, Ordering::Relaxed, |port| {
                         if port >= VMADDR_PORT_ANY - 1 {
                             Some(VSOCK_MIN_PORT)
                         } else {

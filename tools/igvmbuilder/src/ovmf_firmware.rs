@@ -67,7 +67,7 @@ struct SevMetadata {}
 
 impl Metadata for SevMetadata {
     fn signature(&self) -> [u8; 4] {
-        [b'A', b'S', b'E', b'V']
+        *b"ASEV"
     }
 
     fn parse<'a>(
@@ -105,7 +105,7 @@ struct TdxMetadata {}
 
 impl Metadata for TdxMetadata {
     fn signature(&self) -> [u8; 4] {
-        [b'T', b'D', b'V', b'F']
+        *b"TDVF"
     }
 
     fn parse<'a>(
@@ -140,7 +140,7 @@ impl IgvmMetadata {
 
 impl Metadata for IgvmMetadata {
     fn signature(&self) -> [u8; 4] {
-        [b'I', b'G', b'V', b'M']
+        *b"IGVM"
     }
 
     fn parse<'a>(

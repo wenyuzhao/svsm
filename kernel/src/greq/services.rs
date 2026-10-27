@@ -26,18 +26,18 @@ fn get_report(buffer: &mut [u8], certs: Option<&mut [u8]>) -> Result<usize, Svsm
     if !request.is_vmpl0() {
         return Err(SvsmError::InvalidParameter);
     }
-    let response_len = if certs.is_none() {
-        send_regular_guest_request(
-            SnpGuestRequestMsgType::ReportRequest,
-            buffer,
-            REPORT_REQUEST_SIZE,
-        )?
-    } else {
+    let response_len = if let Some(certs) = certs {
         send_extended_guest_request(
             SnpGuestRequestMsgType::ReportRequest,
             buffer,
             REPORT_REQUEST_SIZE,
-            certs.unwrap(),
+            certs,
+        )?
+    } else {
+        send_regular_guest_request(
+            SnpGuestRequestMsgType::ReportRequest,
+            buffer,
+            REPORT_REQUEST_SIZE,
         )?
     };
     if REPORT_RESPONSE_SIZE > response_len {

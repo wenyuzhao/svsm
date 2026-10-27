@@ -163,24 +163,19 @@ pub unsafe fn td_accept_physical_memory(region: MemoryRegion<PhysAddr>) -> Resul
         // SAFETY: the caller takes responsibility for the correct usage of the
         // physical address.
         let ret = unsafe { tdx_result(tdg_mem_page_accept(PageFrame::Size4K(addr))) };
-        match ret {
-            Ok(s) => {
-                if s == TdxSuccess::PageAlreadyAccepted {
-                    // Zero the 4 KB page.
-                    // SAFETY: the caller takes responsibility for the correct
-                    // usage of the physical address.
-                    unsafe {
-                        let mapping = PerCPUPageMappingGuard::create(addr, addr + PAGE_SIZE, 0)?;
-                        mapping
-                            .virt_addr()
-                            .as_mut_ptr::<u8>()
-                            .write_bytes(0, PAGE_SIZE);
-                    }
-                }
-                addr = addr + PAGE_SIZE;
+        if ret? == TdxSuccess::PageAlreadyAccepted {
+            // Zero the 4 KB page.
+            // SAFETY: the caller takes responsibility for the correct
+            // usage of the physical address.
+            unsafe {
+                let mapping = PerCPUPageMappingGuard::create(addr, addr + PAGE_SIZE, 0)?;
+                mapping
+                    .virt_addr()
+                    .as_mut_ptr::<u8>()
+                    .write_bytes(0, PAGE_SIZE);
             }
-            Err(e) => return Err(e.into()),
         }
+        addr = addr + PAGE_SIZE;
     }
 
     Ok(())

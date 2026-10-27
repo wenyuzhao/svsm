@@ -2450,7 +2450,7 @@ pub const MIN_ALIGN: usize = 32;
 
 pub fn layout_from_size(size: usize) -> Result<Layout, AllocError> {
     let align: usize = {
-        if (size % PAGE_SIZE) == 0 {
+        if size.is_multiple_of(PAGE_SIZE) {
             PAGE_SIZE
         } else {
             MIN_ALIGN
@@ -2611,8 +2611,8 @@ mod test {
             }
         }
         let info_after = root_mem.memory_info();
-        for o in 0..MAX_ORDER {
-            assert_eq!(info_after.free_pages[o], 0);
+        for free_pages in info_after.free_pages.iter().take(MAX_ORDER) {
+            assert_eq!(*free_pages, 0);
         }
 
         for alloc in allocs.iter().take(MAX_ORDER) {
@@ -2636,8 +2636,8 @@ mod test {
 
         let info_before = root_mem.memory_info();
         let mut allocs: Vec<VirtAddr> = Vec::new();
-        for o in 0..MAX_ORDER {
-            for _i in 0..info_before.free_pages[o] {
+        for (o, free_pages) in info_before.free_pages.iter().enumerate().take(MAX_ORDER) {
+            for _i in 0..*free_pages {
                 for _j in 0..(1usize << o) {
                     let page = root_mem.allocate_page().unwrap();
                     assert!(!page.is_null());
@@ -2646,8 +2646,8 @@ mod test {
             }
         }
         let info_after = root_mem.memory_info();
-        for o in 0..MAX_ORDER {
-            assert_eq!(info_after.free_pages[o], 0);
+        for free_pages in info_after.free_pages.iter().take(MAX_ORDER) {
+            assert_eq!(*free_pages, 0);
         }
 
         for page in &allocs[..] {
@@ -2677,8 +2677,8 @@ mod test {
             }
         }
         let info_after = root_mem.memory_info();
-        for o in 0..MAX_ORDER {
-            assert_eq!(info_after.free_pages[o], 0);
+        for free_pages in info_after.free_pages.iter().take(MAX_ORDER) {
+            assert_eq!(*free_pages, 0);
         }
 
         let page = root_mem.allocate_page();
