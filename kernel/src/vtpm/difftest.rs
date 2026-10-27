@@ -484,8 +484,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "Known discrepancy: tpm-rs allocates the SHA-1 and SHA-256 PCR banks and \
-                implements SHA-512, tcgtpm allocates the SHA-256 and SHA-384 banks"]
     fn diff_pcr_banks() {
         run(diff_pcr_banks_impl);
     }
