@@ -120,10 +120,13 @@ tpmrs = [
     "dep:getrandom02",
     "dep:getrandom03",
 ]
-# vTPM backend: TCG TPM 2.0 Reference Implementation (libtcgtpm). If both
-# backends are enabled, this one is used, so that it can be selected on top of
-# build recipes that enable `tpmrs` (e.g. `make FEATURES=tcgtpm`).
+# vTPM backend: TCG TPM 2.0 Reference Implementation (libtcgtpm). It is
+# mutually exclusive with `tpmrs`, unless `differential` is enabled.
 tcgtpm = ["vtpm", "dep:libtcgtpm"]
+# Differential testing of the vTPM backends: enables both of them and, in the
+# host unit tests, sends every TPM request to both and checks that their
+# responses are byte-identical. Other builds use the `tpmrs` backend.
+differential = ["tpmrs", "tcgtpm"]
 nosmep = []
 nosmap = []
 verus_all = [

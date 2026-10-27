@@ -8,12 +8,19 @@
 //! TPM backends are supported
 
 // The TPM backend is selected with a cargo feature: `tpmrs` (the default in
-// the build recipes) or `tcgtpm`. If both are enabled, both are compiled and
-// the TCG TPM 2.0 Reference Implementation is used, so that `tcgtpm` can be
-// selected by adding it to the features of a recipe that enables `tpmrs`
-// (e.g. `make FEATURES=tcgtpm`).
+// the build recipes) or `tcgtpm`. Enabling both is only allowed through the
+// `differential` feature: then the unit tests (on the host and inside the
+// SVSM) run both backends side by side and check that their responses are
+// byte-identical (see `difftest`). Other builds with `differential` use
+// tpm-rs.
 #[cfg(not(any(feature = "tpmrs", feature = "tcgtpm")))]
 compile_error!("The `vtpm` feature requires a TPM backend: enable `tpmrs` or `tcgtpm`.");
+
+#[cfg(all(feature = "tpmrs", feature = "tcgtpm", not(feature = "differential")))]
+compile_error!(
+    "The `tpmrs` and `tcgtpm` features are mutually exclusive. Enable only one \
+     of them, or enable `differential` to test both backends against each other."
+);
 
 /// TPM 2.0 implementation in Rust (tpm-rs)
 #[cfg(feature = "tpmrs")]
@@ -22,6 +29,13 @@ pub mod tpmrs;
 /// TPM 2.0 Reference Implementation
 #[cfg(feature = "tcgtpm")]
 pub mod tcgtpm;
+
+/// Differential testing of both TPM backends. If the `differential` feature
+/// is enabled and the unit tests run (on the host or inside the SVSM), every
+/// request is sent to
+/// both backends and their responses must be byte-identical.
+#[cfg(all(feature = "differential", test))]
+pub mod difftest;
 
 pub mod ek_templates;
 mod tss;
@@ -32,9 +46,11 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::types::PAGE_SIZE;
-#[cfg(feature = "tcgtpm")]
+#[cfg(all(feature = "differential", test))]
+use crate::vtpm::difftest::DiffTpm as Vtpm;
+#[cfg(all(feature = "tcgtpm", not(feature = "tpmrs")))]
 use crate::vtpm::tcgtpm::TcgTpm as Vtpm;
-#[cfg(all(feature = "tpmrs", not(feature = "tcgtpm")))]
+#[cfg(all(feature = "tpmrs", not(all(feature = "differential", test))))]
 use crate::vtpm::tpmrs::TpmRs as Vtpm;
 use crate::{locking::LockGuard, protocols::vtpm::TpmPlatformCommand};
 use crate::{locking::SpinLock, protocols::errors::SvsmReqError};
@@ -265,8 +281,12 @@ mod tests {
 
     #[test]
     #[cfg_attr(
-        all(feature = "tcgtpm", not(test_in_svsm)),
+        all(feature = "tcgtpm", not(feature = "differential"), not(test_in_svsm)),
         ignore = "On the host, libtcgtpm stores its NV state in a file in the working directory"
+    )]
+    #[cfg_attr(
+        feature = "differential",
+        ignore = "Random numbers and the EK differ between the vTPM backends"
     )]
     fn vtpm_api() {
         // Initialization is idempotent (inside the SVSM, the vTPM has already

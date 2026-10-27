@@ -261,10 +261,15 @@ sudo zypper in system-user-mail make gcc gcc-c++ curl patterns-devel-base-devel_
       glibc-devel-static git libclang13 cmake pkg-config perl
 ```
 
-The build recipes (`configs/*.json`) enable `tpmrs`. To use the `tcgtpm`
-backend instead, add the feature on the command line, e.g.
-`make FEATURES=tcgtpm`; when both features are enabled, `tcgtpm` takes
-precedence.
+The build recipes (`configs/*.json`) enable `tpmrs`. The two backends are
+mutually exclusive: to use the `tcgtpm` backend instead, replace `tpmrs` with
+`tcgtpm` in the features of the build recipe.
+
+The `differential` feature enables both backends for differential testing:
+the host unit tests then send every TPM request to both backends and check that
+their responses are byte-identical, e.g.
+`cargo test --package svsm --features differential`. Other builds with
+`differential` use the `tpmrs` backend.
 
 Then checkout the SVSM repository and build the SVSM binary:
 
