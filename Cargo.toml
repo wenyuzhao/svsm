@@ -63,10 +63,13 @@ elf = { path = "elf" }
 verus_stub = { path = "verification/verus_stub" }
 verus_macro_stub = { path = "verification/verus_macro_stub" }
 libtcgtpm = { path = "libtcgtpm" }
-# TPM 2.0 implementation in Rust (tpm-rs)
+# TPM 2.0 implementation in Rust (tpm-rs). The algorithms of the TPM are the
+# Cargo features of `tpm2`, set by the tpm-rs workspace. Every crate is used
+# without its default features: this disables `sha512`, so that, like
+# libtcgtpm, the vTPM does not implement SHA-512.
 tpm2 = { path = "tpm-rs/crates/tpm2", default-features = false }
 tpm2-impl = { path = "tpm-rs/crates/tpm2-impl", default-features = false }
-tpm2-crypto-rust = { path = "tpm-rs/crates/tpm2-crypto/rust" }
+tpm2-crypto-rust = { path = "tpm-rs/crates/tpm2-crypto/rust", default-features = false }
 libaproxy = { path = "libaproxy" }
 syscall = { path = "syscall" }
 packit = { path = "packit" }

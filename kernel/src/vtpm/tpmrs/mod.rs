@@ -20,7 +20,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use tpm2_crypto_rust::RustCryptoProvider;
-use tpm2_impl::{TPM_PROFILE_NO_SHA512, TpmEngine, TpmPlatform};
+use tpm2_impl::{TpmEngine, TpmPlatform};
 
 use crate::{
     protocols::{errors::SvsmReqError, vtpm::TpmPlatformCommand},
@@ -76,10 +76,12 @@ impl TpmRs {
             Box::leak(Box::new(SvsmTimer::new())),
             Box::leak(Box::new(SvsmPlatformRng)),
         );
-        // Like the TCG TPM reference implementation configured in `libtcgtpm`
+        // The algorithms of the TPM are the Cargo features of `tpm2`. Like the
+        // TCG TPM reference implementation configured in `libtcgtpm`
         // (`ALG_SHA512` is `ALG_NO` in `TpmProfile_Common.h`), the vTPM does
-        // not implement SHA-512.
-        let engine = TpmEngine::with_profile(platform, &TPM_PROFILE_NO_SHA512).map_err(|e| {
+        // not implement SHA-512: the tpm-rs crates are built without their
+        // default `sha512` feature (see the workspace `Cargo.toml`).
+        let engine = TpmEngine::new(platform).map_err(|e| {
             log::error!("VTPM: failed to create TPM engine: {e}");
             SvsmReqError::incomplete()
         })?;
