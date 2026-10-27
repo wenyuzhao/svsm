@@ -155,7 +155,7 @@ pub mod digest {
 pub mod rustcrypto;
 
 mod rng;
-pub use rng::{SvsmRng, get_svsm_rng};
+pub use rng::{SvsmRng, fill_random, get_svsm_rng};
 
 #[cfg(test)]
 mod tests {

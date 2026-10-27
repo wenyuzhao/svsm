@@ -10,10 +10,7 @@
 extern crate alloc;
 
 use crate::protocols::errors::SvsmReqError;
-use crate::vtpm::{
-    SvsmVTpmError,
-    tcgtpm::{TPM_BUFFER_MAX_SIZE, TcgTpmSimulatorInterface},
-};
+use crate::vtpm::{SvsmVTpmError, TPM_BUFFER_MAX_SIZE, TpmSimulatorInterface};
 use alloc::vec::Vec;
 
 pub const TPM_RC_SUCCESS: u32 = 0;
@@ -89,7 +86,7 @@ fn create_mtauth_ek_cmd(tpmt_public: &[u8]) -> Vec<u8> {
 ///
 /// Arguments:
 ///
-/// * `vtpm`: An implementation of [`TcgTpmSimulatorInterface`] to send `cmd` to.
+/// * `vtpm`: An implementation of [`TpmSimulatorInterface`] to send `cmd` to.
 /// * `cmd`: A command buffer.
 /// * `set_len`: If true, sets the command length in the command header to `cmd.len()` before
 ///   sending the command.
@@ -97,8 +94,8 @@ fn create_mtauth_ek_cmd(tpmt_public: &[u8]) -> Vec<u8> {
 /// Returns:
 ///
 /// The command response on success, or an error.
-pub fn checked_send<T: TcgTpmSimulatorInterface>(
-    vtpm: &T,
+pub fn checked_send<T: TpmSimulatorInterface>(
+    vtpm: &mut T,
     cmd: &mut [u8],
     set_len: bool,
 ) -> Result<Vec<u8>, SvsmVTpmError> {
@@ -125,14 +122,14 @@ pub fn checked_send<T: TcgTpmSimulatorInterface>(
 ///
 /// Arguments:
 ///
-/// * `vtpm`: An implementation of [`TcgTpmSimulatorInterface`] to send `cmd` to.
+/// * `vtpm`: An implementation of [`TpmSimulatorInterface`] to send `cmd` to.
 /// * `tpmt_public`: A marshaled TPMT_PUBLIC to use as the key creation template.
 ///
 /// Returns:
 ///
 /// A TPMT_PUBLIC of the key created from the template.
-pub fn create_ek<T: TcgTpmSimulatorInterface>(
-    vtpm: &T,
+pub fn create_ek<T: TpmSimulatorInterface>(
+    vtpm: &mut T,
     tpmt_public: &[u8],
 ) -> Result<Vec<u8>, SvsmVTpmError> {
     let mut cmd = create_mtauth_ek_cmd(tpmt_public);

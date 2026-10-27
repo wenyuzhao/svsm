@@ -110,7 +110,7 @@ dedicated call ID. Supported protocols:
 |----|-----------------------|------------------------------------|---------|
 | 0  | Core Protocol         | `kernel/src/protocols/core.rs`     | Protocol discovery, memory validation requests (`PVALIDATE`), guest vCPU creation/deletion |
 | 1  | Attestation Protocol  | `kernel/src/protocols/attest.rs`   | Provides attestation reports, signing certificates, and manifest querying |
-| 2  | vTPM Protocol         | `kernel/src/protocols/vtpm.rs`     | Bridges simulated TPM commands to the TPM reference simulator |
+| 2  | vTPM Protocol         | `kernel/src/protocols/vtpm.rs`     | Bridges TPM commands to the vTPM, backed by tpm-rs (`tpmrs` feature) or the TPM reference implementation (`tcgtpm` feature) |
 | 3  | Virtual APIC Protocol | `kernel/src/protocols/apic.rs`     | Provides virtual local APIC registers, configuration, and vector settings |
 | 4  | UEFI Management Mode  | `kernel/src/protocols/uefivars.rs` | Bridges UEFI MM communication requests to the variable store (`feature = "uefivars"`)
 

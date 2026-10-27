@@ -156,3 +156,19 @@ pub fn get_svsm_rng() -> Result<SvsmRng, CryptoError> {
 
     SvsmRng::instantiate()
 }
+
+/// Fill `buf` with random bytes drawn from an [`SvsmRng`] instance.
+pub fn fill_random(buf: &mut [u8]) -> Result<(), CryptoError> {
+    if buf.is_empty() {
+        return Ok(());
+    }
+    let mut rng = get_svsm_rng()?;
+    rng.generate::<_, EmptyCryptoIoSlices>(
+        io_slices::SingletonIoSliceMut::new(buf).map_infallible_err(),
+        None,
+    )
+    .map_err(|e| match e {
+        rng::RngGenerateError::CryptoError(e) => e,
+        rng::RngGenerateError::ReseedRequired => CryptoError::RngFailure,
+    })
+}

@@ -1,10 +1,10 @@
-FEATURES ?= vtpm
+FEATURES ?= tpmrs
 ifneq ($(FEATURES),)
 SVSM_ARGS += --features ${FEATURES}
 XBUILD_ARGS += -f ${FEATURES}
 endif
 
-FEATURES_TEST ?= vtpm,block,uefivars,secureboot,enable-console-log,attest
+FEATURES_TEST ?= tpmrs,block,uefivars,secureboot,enable-console-log,attest
 SVSM_ARGS_TEST += --no-default-features
 ifneq ($(FEATURES_TEST),)
 SVSM_ARGS_TEST += --features ${FEATURES_TEST}

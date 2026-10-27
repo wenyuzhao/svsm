@@ -14,7 +14,7 @@
     },
     "kernel": {
         "svsm": {
-            "features": "vtpm,enable-console-log",
+            "features": "tpmrs,enable-console-log",
             "binary": false
         },
         "bldr": {

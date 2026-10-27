@@ -10,6 +10,10 @@ rustflags = [
     'aes_backend="soft"',
     "--cfg",
     "polyval_force_soft",
+    # getrandom 0.3 has no backend for bare-metal targets; the SVSM kernel
+    # provides one (see `kernel/src/vtpm/tpmrs/getrandom.rs`).
+    "--cfg",
+    'getrandom_backend="custom"',
 ]
 
 [target.x86_64-unknown-linux-gnu]

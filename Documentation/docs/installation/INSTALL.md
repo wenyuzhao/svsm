@@ -241,16 +241,30 @@ Building the SVSM itself requires:
   [https://rustup.rs/](https://rustup.rs/) on how to get this environment installed.
 * `x86_64-unknown-none` target toolchain installed (`rustup target add x86_64-unknown-none`)
 * `binutils` >= 2.39
-* (optional) for the vtpm feature gcc is needed.  For cross-compiling
-  a cross-gcc is needed (/usr/bin/x86_64-linux-gnu-gcc, gcc-x86_64-linux-gnu.rpm).
 
-You may also need to install the TPM 2.0 Reference Implementation build
-dependencies. On OpenSUSE you can do this by:
+The vTPM (`vtpm` feature) can be backed by one of two TPM implementations,
+selected with a cargo feature:
+
+* `tpmrs` (default): [tpm-rs](https://github.com/tpm-rs/tpm-rs), a TPM 2.0
+  implementation written in Rust. It does not need any additional build
+  dependencies. The Rust toolchain version required by tpm-rs is selected by
+  `rust-toolchain.toml`.
+* `tcgtpm`: the TCG TPM 2.0 Reference Implementation (`libtcgtpm`). For this
+  backend gcc is needed. For cross-compiling a cross-gcc is needed
+  (/usr/bin/x86_64-linux-gnu-gcc, gcc-x86_64-linux-gnu.rpm).
+
+If you use the `tcgtpm` backend, you may also need to install the TPM 2.0
+Reference Implementation build dependencies. On OpenSUSE you can do this by:
 
 ```shell
 sudo zypper in system-user-mail make gcc gcc-c++ curl patterns-devel-base-devel_basis \
       glibc-devel-static git libclang13 cmake pkg-config perl
 ```
+
+The build recipes (`configs/*.json`) enable `tpmrs`. To use the `tcgtpm`
+backend instead, add the feature on the command line, e.g.
+`make FEATURES=tcgtpm`; when both features are enabled, `tcgtpm` takes
+precedence.
 
 Then checkout the SVSM repository and build the SVSM binary:
 

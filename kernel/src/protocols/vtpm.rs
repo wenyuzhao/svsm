@@ -16,7 +16,7 @@ use crate::{
     mm::guestmem::{copy_slice_to_guest, read_bytes_from_guest, read_from_guest},
     protocols::{RequestParams, errors::SvsmReqError},
     types::PAGE_SIZE,
-    vtpm::{TcgTpmSimulatorInterface, VtpmProtocolInterface, vtpm_get_locked},
+    vtpm::{VtpmProtocolInterface, vtpm_get_locked, vtpm_send_command},
 };
 
 pub const VTPM_PROTOCOL_VERSION_MIN: u32 = 1;
@@ -115,10 +115,7 @@ impl TpmSendCommandRequest {
             .get(..length)
             .ok_or_else(SvsmReqError::invalid_parameter)?;
 
-        let vtpm = vtpm_get_locked();
-        let response = vtpm.send_tpm_command(tpm_cmd, self.locality)?;
-
-        Ok(response)
+        vtpm_send_command(tpm_cmd, self.locality)
     }
 }
 

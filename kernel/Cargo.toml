@@ -59,6 +59,9 @@ kbs-types = { workspace = true, optional = true, features = ["alloc"] }
 log = { workspace = true, features = ["max_level_info", "release_max_level_info"] }
 packit.workspace = true
 libtcgtpm = { workspace = true, optional = true }
+tpm2 = { workspace = true, optional = true }
+tpm2-impl = { workspace = true, optional = true }
+tpm2-crypto-rust = { workspace = true, optional = true }
 rustc-demangle = { workspace = true }
 serde = { workspace = true, optional = true, features = ["alloc", "derive"] }
 serde_json = { workspace = true, optional = true, features = ["alloc"] }
@@ -80,6 +83,13 @@ verify_external = { workspace = true, optional = true }
 verus_stub = { workspace = true }
 zeroize = { workspace = true, features = ["alloc", "derive"] }
 
+# The RustCrypto crates used by the vTPM draw OS entropy through `getrandom`,
+# which has no backend for bare-metal targets. The SVSM provides a custom
+# backend for both major versions of the crate (see `vtpm::tpmrs::getrandom`).
+[target.'cfg(target_os = "none")'.dependencies]
+getrandom02 = { workspace = true, optional = true, features = ["custom"] }
+getrandom03 = { workspace = true, optional = true }
+
 [target."x86_64-unknown-none".dev-dependencies]
 test.workspace = true
 
@@ -98,7 +108,22 @@ attest-serial = ["attest"]
 default = []
 persistence = ["dep:cocoon-tpm-storage", "block", "attest"]
 enable-gdb = ["dep:gdbstub", "dep:gdbstub_arch"]
-vtpm = ["dep:libtcgtpm"]
+# vTPM service. It requires one of the TPM backends below; enabling a
+# backend also enables `vtpm`.
+vtpm = []
+# vTPM backend: tpm-rs, a TPM 2.0 implementation in Rust.
+tpmrs = [
+    "vtpm",
+    "dep:tpm2",
+    "dep:tpm2-impl",
+    "dep:tpm2-crypto-rust",
+    "dep:getrandom02",
+    "dep:getrandom03",
+]
+# vTPM backend: TCG TPM 2.0 Reference Implementation (libtcgtpm). If both
+# backends are enabled, this one is used, so that it can be selected on top of
+# build recipes that enable `tpmrs` (e.g. `make FEATURES=tcgtpm`).
+tcgtpm = ["vtpm", "dep:libtcgtpm"]
 nosmep = []
 nosmap = []
 verus_all = [

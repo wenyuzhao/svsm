@@ -45,6 +45,8 @@ members = [
     # Test support library
     "test",
 ]
+# tpm-rs is a separate workspace whose crates are used as path dependencies.
+exclude = ["tpm-rs"]
 
 [workspace.package]
 edition = "2024"
@@ -61,6 +63,10 @@ elf = { path = "elf" }
 verus_stub = { path = "verification/verus_stub" }
 verus_macro_stub = { path = "verification/verus_macro_stub" }
 libtcgtpm = { path = "libtcgtpm" }
+# TPM 2.0 implementation in Rust (tpm-rs)
+tpm2 = { path = "tpm-rs/crates/tpm2", default-features = false }
+tpm2-impl = { path = "tpm-rs/crates/tpm2-impl", default-features = false }
+tpm2-crypto-rust = { path = "tpm-rs/crates/tpm2-crypto/rust" }
 libaproxy = { path = "libaproxy" }
 syscall = { path = "syscall" }
 packit = { path = "packit" }
@@ -87,6 +93,8 @@ concat-kdf = "0.1.0"
 gdbstub = { version = "0.7.10", default-features = false }
 gdbstub_arch = { version = "0.3.3" }
 fdt = { version = "0.1.5" }
+getrandom02 = { package = "getrandom", version = "0.2", default-features = false }
+getrandom03 = { package = "getrandom", version = "0.3", default-features = false }
 igvm = { version = "0.4.0", default-features = false }
 igvm_defs = { version = "0.4.0", default-features = false }
 intrusive-collections = "0.10.0"

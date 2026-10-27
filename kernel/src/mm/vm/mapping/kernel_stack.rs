@@ -103,6 +103,21 @@ impl VMKernelStack {
         VMKernelStack::new_size(STACK_SIZE, false)
     }
 
+    /// Create a new [`VMKernelStack`] with a custom size. This function
+    /// will already allocate the backing pages for the stack.
+    ///
+    /// # Arguments
+    ///
+    /// * `size` - Size of the kernel stack, without guard pages. It is
+    ///   rounded up to a multiple of the page size.
+    ///
+    /// # Returns
+    ///
+    /// Initialized stack on success, Err(SvsmError::Mem) on error
+    pub fn new_with_size(size: usize) -> Result<Self, SvsmError> {
+        VMKernelStack::new_size(size, false)
+    }
+
     /// Create a new [`VMKernelStack`] with one page in size for use as a
     /// shadow stack.
     ///

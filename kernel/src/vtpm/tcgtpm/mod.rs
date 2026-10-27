@@ -14,9 +14,6 @@ mod wrapper;
 mod persistence;
 use persistence::{ManufacturedMarker, Marker as _};
 
-pub mod ek_templates;
-mod tss;
-
 extern crate alloc;
 
 use alloc::vec::Vec;
@@ -31,10 +28,9 @@ use libtcgtpm::bindings::{
 use crate::{
     address::VirtAddr,
     protocols::{errors::SvsmReqError, vtpm::TpmPlatformCommand},
-    types::PAGE_SIZE,
     vtpm::{
-        TcgTpmSimulatorInterface, VtpmInterface, VtpmProtocolInterface,
-        tcgtpm::ek_templates::DEFAULT_PUBLIC_AREA,
+        TPM_BUFFER_MAX_SIZE, TpmSimulatorInterface, VtpmInterface, VtpmProtocolInterface,
+        ek_templates::DEFAULT_PUBLIC_AREA, tss,
     },
 };
 
@@ -103,10 +99,8 @@ impl VtpmProtocolInterface for TcgTpm {
     }
 }
 
-pub const TPM_BUFFER_MAX_SIZE: usize = PAGE_SIZE;
-
-impl TcgTpmSimulatorInterface for TcgTpm {
-    fn send_tpm_command(&self, command: &[u8], locality: u8) -> Result<Vec<u8>, SvsmReqError> {
+impl TpmSimulatorInterface for TcgTpm {
+    fn send_tpm_command(&mut self, command: &[u8], locality: u8) -> Result<Vec<u8>, SvsmReqError> {
         if !self.is_powered_on {
             return Err(SvsmReqError::invalid_request());
         }
@@ -181,7 +175,7 @@ impl TcgTpmSimulatorInterface for TcgTpm {
         Ok(())
     }
 
-    fn signal_nvon(&self) -> Result<(), SvsmReqError> {
+    fn signal_nvon(&mut self) -> Result<(), SvsmReqError> {
         if !self.is_powered_on {
             return Err(SvsmReqError::invalid_request());
         }

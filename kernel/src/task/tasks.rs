@@ -38,7 +38,7 @@ use crate::locking::SpinLockIrqSafe;
 use crate::mm::pagetable::{PTEntryFlags, PageTable};
 use crate::mm::vm::{Mapping, VMFileMappingFlags, VMKernelStack, VMR, VMRMapping};
 use crate::mm::{
-    PageBox, SVSM_PERTASK_BASE, SVSM_PERTASK_END, USER_MEM_END, USER_MEM_START,
+    PageBox, STACK_SIZE, SVSM_PERTASK_BASE, SVSM_PERTASK_END, USER_MEM_END, USER_MEM_START,
     mappings::create_anon_mapping, mappings::create_file_mapping,
 };
 use crate::syscall::{Obj, ObjError, ObjHandle};
@@ -100,6 +100,7 @@ pub struct KernelThreadStartInfo {
     entry: usize,
     start_parameter: usize,
     start_routine: usize,
+    stack_size: usize,
 }
 
 impl KernelThreadStartInfo {
@@ -108,6 +109,7 @@ impl KernelThreadStartInfo {
             entry: entry as usize,
             start_parameter: T::to_usize(start_parameter),
             start_routine: run_kernel_task::<T> as *const () as usize,
+            stack_size: STACK_SIZE,
         }
     }
 
@@ -120,7 +122,20 @@ impl KernelThreadStartInfo {
             entry: entry as usize,
             start_parameter,
             start_routine: run_kernel_task::<usize> as *const () as usize,
+            stack_size: STACK_SIZE,
         }
+    }
+
+    /// Overrides the size of the kernel stack allocated for the new task.
+    /// By default, tasks get a stack of [`STACK_SIZE`] bytes.
+    ///
+    /// # Arguments
+    ///
+    /// * `stack_size` - Size of the kernel stack in bytes, without guard
+    ///   pages. It is rounded up to a multiple of the page size.
+    pub fn with_stack_size(mut self, stack_size: usize) -> Self {
+        self.stack_size = stack_size;
+        self
     }
 }
 
@@ -530,6 +545,7 @@ impl Task {
                 info.start_routine,
                 xsa_addr,
                 info.start_parameter,
+                info.stack_size,
             )?,
         };
         let kernel_stack_mapping = VMRMapping::new(task_mm.clone(), stack)?;
@@ -742,11 +758,12 @@ impl Task {
     fn allocate_stack_common<T>(
         cpu: &PerCpu,
         context: &T,
+        stack_size: usize,
     ) -> Result<(Mapping, MemoryRegion<VirtAddr>, usize), SvsmError>
     where
         T: Sized + Copy,
     {
-        let stack = VMKernelStack::new()?;
+        let stack = VMKernelStack::new_with_size(stack_size)?;
         let bounds = stack.bounds(VirtAddr::from(0u64));
 
         let mapping = Arc::new(stack);
@@ -782,6 +799,7 @@ impl Task {
         start_routine: usize,
         xsa_addr: usize,
         start_parameter: usize,
+        stack_size: usize,
     ) -> Result<(Mapping, MemoryRegion<VirtAddr>, usize), SvsmError> {
         let task_context = KernelTaskContext {
             task_context: TaskContext {
@@ -798,7 +816,7 @@ impl Task {
             exit_addr: task_exit as *const () as u64,
         };
 
-        Self::allocate_stack_common(cpu, &task_context)
+        Self::allocate_stack_common(cpu, &task_context, stack_size)
     }
 
     fn allocate_utask_stack(
@@ -825,7 +843,7 @@ impl Task {
             excp_context: X86ExceptionContext::default(),
         };
 
-        Self::allocate_stack_common(cpu, &task_context)
+        Self::allocate_stack_common(cpu, &task_context, STACK_SIZE)
     }
 
     fn allocate_xsave_area() -> PageBox<[u8]> {
