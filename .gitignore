@@ -30,3 +30,6 @@ verus*.log
 
 # local GDB history
 .gdb_history
+
+# local agent instructions
+/GEMINI.md
